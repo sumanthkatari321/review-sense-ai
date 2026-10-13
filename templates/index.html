@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ReviewSense AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+  </head>
+  <body>
+    <main class="card">
+      <p class="eyebrow">MACHINE LEARNING DEMO</p>
+      <h1>ReviewSense <span>AI</span></h1>
+      <p class="intro">Paste a customer review and get an instant sentiment prediction.</p>
+
+      <label for="review">Customer review</label>
+      <textarea id="review" rows="6" placeholder="The product arrived early and the quality is fantastic..."></textarea>
+      <button id="analyze">Analyze sentiment</button>
+      <section id="result" class="result hidden" aria-live="polite"></section>
+      <p class="note">Demo model trained on a small built-in dataset.</p>
+    </main>
+    <script>
+      const button = document.querySelector('#analyze');
+      const review = document.querySelector('#review');
+      const result = document.querySelector('#result');
+
+      button.addEventListener('click', async () => {
+        button.disabled = true;
+        button.textContent = 'Analyzing…';
+        try {
+          const response = await fetch('/api/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: review.value })
+          });
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error);
+          result.className = `result ${data.sentiment}`;
+          result.innerHTML = `<strong>${data.sentiment}</strong><span>${Math.round(data.confidence * 100)}% confidence</span>`;
+        } catch (error) {
+          result.className = 'result error';
+          result.textContent = error.message;
+        } finally {
+          button.disabled = false;
+          button.textContent = 'Analyze sentiment';
+        }
+      });
+    </script>
+  </body>
+</html>
